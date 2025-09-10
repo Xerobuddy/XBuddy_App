@@ -24,7 +24,7 @@ export default function TermsOfUse() {
       <Text style={styles.title}>Terms of Use</Text>
       {/* Video (not background, just below title) */}
       <Video
-        source={require("../../../../assets/videos/comp_1.webm")} // or .mov
+        source={require("../../../../assets/videos/comp_1.webm")}
         style={styles.video}
         resizeMode="contain"
         repeat
