@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "516332872631",
+    "project_id": "xbuddy-app",
+    "storage_bucket": "xbuddy-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:516332872631:android:e409ffdbabda48b0903e32",
+        "android_client_info": {
+          "package_name": "com.xbuddy_app_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "516332872631-kho20agfdfhcm9kma9iu2baulhbehg87.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.xbuddy_app_project",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "516332872631-a4l2omdm2j8jmasf91udmieljnvgt6cd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBStTumCCHrwv4AzqAfIHDpEcDY0rGv_QA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "516332872631-a4l2omdm2j8jmasf91udmieljnvgt6cd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
