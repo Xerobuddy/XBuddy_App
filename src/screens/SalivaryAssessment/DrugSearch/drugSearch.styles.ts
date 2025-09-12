@@ -4,6 +4,7 @@ export const drugSearchStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: "#f2f2f2",
   },
 
   backButtonContainer: {
@@ -27,28 +28,53 @@ export const drugSearchStyles = StyleSheet.create({
     color: "#222",
   },
 
-  // Search Input
+  // Search + Add container
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
   searchInput: {
-    backgroundColor: "rgba(255,255,255,0.95)",
+    flex: 1,
+    backgroundColor: "#fff",
     padding: 14,
     borderRadius: 12,
     fontSize: 16,
-    marginBottom: 20,
     borderWidth: 1,
     borderColor: "rgba(0,0,0,0.1)",
+  },
+  addDrugButton: {
+    marginLeft: 10,
+    backgroundColor: "#0088b1",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  // Hint text when search returns empty
+  hintText: {
+    fontSize: 14,
+    color: "#ff9800",
+    marginBottom: 8,
+    marginLeft: 4,
   },
 
   // List
   list: {
-    paddingBottom: 100, // leave space for Next button
+    paddingBottom: 120, // space for Next button
   },
 
-  // Product Item
+  // Product/Drug Item
   productItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: "#fff",
     padding: 16,
     marginBottom: 12,
     borderRadius: 12,
@@ -69,7 +95,7 @@ export const drugSearchStyles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Add Button (circular blue with shadow)
+  // Add Button in item
   addButton: {
     backgroundColor: "#007AFF",
     padding: 10,
@@ -89,7 +115,7 @@ export const drugSearchStyles = StyleSheet.create({
     bottom: 30,
     left: 20,
     right: 20,
-    backgroundColor: "#8359E3", // iOS green style
+    backgroundColor: "#8359E3",
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
@@ -100,4 +126,58 @@ export const drugSearchStyles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
   },
+
+  // Modal overlay and container
+  modalOverlay: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "#000000aa",
+},
+modalContainer: {
+  backgroundColor: "#fff",
+  padding: 24,
+  borderRadius: 16,
+  width: "85%",
+},
+modalTitle: {
+  fontSize: 20,
+  fontWeight: "bold",
+  marginBottom: 16,
+  color: "#222",
+  textAlign: "center",
+},
+modalLabel: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: "#444",
+  marginBottom: 6,
+},
+modalInput: {
+  borderWidth: 1,
+  borderColor: "#ccc",
+  padding: 10,
+  borderRadius: 10,
+  marginBottom: 12,
+  fontSize: 16,
+},
+hintText2: {
+  fontSize: 16,
+  color: "#161d1f",
+  marginBottom: 16,
+},
+modalButtons: {
+  flexDirection: "row",
+  justifyContent: "flex-end",
+},
+cancelButton: {
+  fontSize: 16,
+  color: "#555",
+  marginRight: 16,
+},
+saveButton: {
+  fontSize: 16,
+  color: "#0088b1",
+  fontWeight: "bold",
+},
 });

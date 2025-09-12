@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   ImageBackground,
   Image,
-  Alert
+  Modal,
+  Alert,
 } from "react-native";
 import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
@@ -15,44 +16,47 @@ import { drugSearchStyles } from "./drugSearch.styles";
 import { PlusIcon } from "react-native-heroicons/outline";
 import { ArrowLeftIcon } from "react-native-heroicons/solid";
 
-interface Product {
+interface Drug {
   id: string;
-  productName: string;
+  drugName: string;
   acbScore: number;
 }
 
 export default function DrugSearchScreen({ route, navigation }: any) {
   const { reportId } = route.params;
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filtered, setFiltered] = useState<Product[]>([]);
+  const [drugs, setDrugs] = useState<Drug[]>([]);
+  const [filtered, setFiltered] = useState<Drug[]>([]);
   const [searchText, setSearchText] = useState("");
   const [numDrugsRequired, setNumDrugsRequired] = useState<number>(0);
-  const [selectedDrugs, setSelectedDrugs] = useState<Product[]>([]);
+  const [selectedDrugs, setSelectedDrugs] = useState<Drug[]>([]);
+
+  // Modal states
+  const [showModal, setShowModal] = useState(false);
+  const [newDrug, setNewDrug] = useState({ drugName: "", acbScore: 0 });
 
   const userEmail = auth().currentUser?.email;
 
-  // Fetch products from Firestore
+  // Fetch drugs from Firestore
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchDrugs = async () => {
       try {
-        const querySnap = await firestore().collection("products").get();
-        const list: Product[] = [];
+        const querySnap = await firestore().collection("drugs").get();
+        const list: Drug[] = [];
         querySnap.forEach((docSnap) => {
           const data = docSnap.data();
           list.push({
             id: docSnap.id,
-            productName: data.productName,
+            drugName: data.drugName,
             acbScore: data.acbScore,
           });
         });
-        setProducts(list);
+        setDrugs(list);
         setFiltered(list);
       } catch (err) {
-        console.error("Error fetching products:", err);
+        console.error("Error fetching drugs:", err);
       }
     };
-
-    fetchProducts();
+    fetchDrugs();
   }, []);
 
   // Fetch report details (numDrugsRequired + existing drugs)
@@ -79,22 +83,18 @@ export default function DrugSearchScreen({ route, navigation }: any) {
   const handleSearch = (text: string) => {
     setSearchText(text);
     if (text.trim() === "") {
-      setFiltered(products);
+      setFiltered(drugs);
     } else {
-      setFiltered(
-        products.filter((p) =>
-          p.productName.toLowerCase().includes(text.toLowerCase())
-        )
+      const filteredList = drugs.filter((d) =>
+        d.drugName.toLowerCase().includes(text.toLowerCase())
       );
+      setFiltered(filteredList);
     }
   };
 
-  // Add product to report (patient side + admin side)
-  const handleAddProduct = async (product: Product) => {
+  const handleAddDrugToReport = async (drug: Drug) => {
     try {
       if (!userEmail) return;
-
-      // Check if the limit is reached
       if (selectedDrugs.length >= numDrugsRequired) {
         Alert.alert(
           "Limit reached",
@@ -103,46 +103,71 @@ export default function DrugSearchScreen({ route, navigation }: any) {
         return;
       }
 
-      // patient report
       await firestore()
         .collection("users")
         .doc(userEmail)
         .collection("reports")
         .doc(reportId)
-        .update({ drugs: firestore.FieldValue.arrayUnion(product) });
+        .update({ drugs: firestore.FieldValue.arrayUnion(drug) });
 
-      // admin report
       await firestore()
         .collection("admin")
         .doc("reports")
         .collection("reports")
         .doc(reportId)
-        .update({ drugs: firestore.FieldValue.arrayUnion(product) });
+        .update({ drugs: firestore.FieldValue.arrayUnion(drug) });
 
-      Alert.alert("Success", `${product.productName} has been added to the report.`);
+      Alert.alert("Success", `${drug.drugName} added to the report.`);
     } catch (err) {
-      Alert.alert("Error", "Failed to add product. Please try again.");
-      console.error("Error adding product:", err);
+      Alert.alert("Error", "Failed to add drug.");
+      console.error(err);
     }
   };
 
-  const renderItem = ({ item }: { item: Product }) => {
-    const isDisabled = selectedDrugs.length >= numDrugsRequired;
+  // Add new drug to the database
+  const handleSaveDrug = async () => {
+    if (!newDrug.drugName.trim()) {
+      Alert.alert("Error", "Drug name cannot be empty.");
+      return;
+    }
+    if (newDrug.acbScore < 0 || newDrug.acbScore > 3) {
+      Alert.alert("Error", "ACB Score must be between 0 and 3.");
+      return;
+    }
+    try {
+      await firestore()
+        .collection("drugs")
+        .doc(newDrug.drugName.trim())
+        .set({ drugName: newDrug.drugName.trim(), acbScore: newDrug.acbScore });
 
+      setShowModal(false);
+      setNewDrug({ drugName: "", acbScore: 0 });
+
+      const querySnap = await firestore().collection("drugs").get();
+      const list: Drug[] = [];
+      querySnap.forEach((docSnap) => {
+        const data = docSnap.data();
+        list.push({ id: docSnap.id, drugName: data.drugName, acbScore: data.acbScore });
+      });
+      setDrugs(list);
+      setFiltered(list);
+    } catch (err) {
+      console.error("Error adding drug:", err);
+      Alert.alert("Error", "Failed to add drug.");
+    }
+  };
+
+  const renderItem = ({ item }: { item: Drug }) => {
+    const isDisabled = selectedDrugs.length >= numDrugsRequired;
     return (
       <View style={drugSearchStyles.productItem}>
         <View>
-          <Text style={drugSearchStyles.productName}>{item.productName}</Text>
-          <Text style={drugSearchStyles.productScore}>
-            ACB Score: {item.acbScore}
-          </Text>
+          <Text style={drugSearchStyles.productName}>{item.drugName}</Text>
+          <Text style={drugSearchStyles.productScore}>ACB Score: {item.acbScore}</Text>
         </View>
         <TouchableOpacity
-          onPress={() => handleAddProduct(item)}
-          style={[
-            drugSearchStyles.addButton,
-            isDisabled && { backgroundColor: "#888" }, // greyed out
-          ]}
+          onPress={() => handleAddDrugToReport(item)}
+          style={[drugSearchStyles.addButton, isDisabled && { backgroundColor: "#888" }]}
           disabled={isDisabled}
         >
           <PlusIcon size={20} color="#fff" />
@@ -151,7 +176,6 @@ export default function DrugSearchScreen({ route, navigation }: any) {
     );
   };
 
-  // Condition for button
   const isComplete = selectedDrugs.length === numDrugsRequired;
 
   return (
@@ -177,16 +201,28 @@ export default function DrugSearchScreen({ route, navigation }: any) {
         <Text style={drugSearchStyles.title}>Drug Search</Text>
       </View>
 
-      {/* Search Bar */}
-      <TextInput
-        style={drugSearchStyles.searchInput}
-        placeholder="Search drugs..."
-        placeholderTextColor="#888"
-        value={searchText}
-        onChangeText={handleSearch}
-      />
+      {/* Search + Add */}
+      <View style={drugSearchStyles.searchContainer}>
+        <TextInput
+          style={drugSearchStyles.searchInput}
+          placeholder="Search drugs..."
+          placeholderTextColor="#888"
+          value={searchText}
+          onChangeText={handleSearch}
+        />
+        <TouchableOpacity style={drugSearchStyles.addDrugButton} onPress={() => setShowModal(true)}>
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>Add Drug</Text>
+        </TouchableOpacity>
+      </View>
 
-      {/* Product List */}
+      {/* Hint */}
+      {searchText.length > 0 && filtered.length === 0 && (
+        <Text style={drugSearchStyles.hintText2}>
+          No drug found. You can add it using the "Add Drug" button.
+        </Text>
+      )}
+
+      {/* Drug list */}
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
@@ -194,22 +230,65 @@ export default function DrugSearchScreen({ route, navigation }: any) {
         contentContainerStyle={drugSearchStyles.list}
       />
 
-      {/* Next/Add button */}
+      {/* Next button */}
       <TouchableOpacity
-        style={[
-          drugSearchStyles.nextButton,
-          !isComplete && { backgroundColor: "#989898" },
-        ]}
+        style={[drugSearchStyles.nextButton, !isComplete && { backgroundColor: "#989898" }]}
         onPress={() =>
           isComplete
             ? navigation.navigate("AcbScoreScreen", { reportId })
             : Alert.alert("Incomplete", "Please add all required drugs.")
         }
       >
-        <Text style={drugSearchStyles.nextButtonText}>
-          {isComplete ? "Next" : "Add Item"}
-        </Text>
+        <Text style={drugSearchStyles.nextButtonText}>{isComplete ? "Next" : "Add Item"}</Text>
       </TouchableOpacity>
+
+      {/* Modal */}
+      <Modal transparent visible={showModal} animationType="slide">
+        <View style={drugSearchStyles.modalOverlay}>
+          <View style={drugSearchStyles.modalContainer}>
+            <Text style={drugSearchStyles.modalTitle}>Add New Drug</Text>
+
+            {/* Drug Name Label & Input */}
+            <Text style={drugSearchStyles.modalLabel}>Drug Name <Text style={{ color: "red" }}>*</Text></Text>
+            <TextInput
+              placeholder="Enter drug name"
+              value={newDrug.drugName}
+              onChangeText={(text) => setNewDrug({ ...newDrug, drugName: text })}
+              style={drugSearchStyles.modalInput}
+            />
+
+            {/* ACB Score Label & Input */}
+            <Text style={drugSearchStyles.modalLabel}>ACB Score (Optional)</Text>
+            <TextInput
+              placeholder="0-3"
+              value={newDrug.acbScore === 0 ? "" : newDrug.acbScore.toString()}
+              keyboardType="number-pad"
+              maxLength={1}
+              onChangeText={(text) => {
+                let value = Number(text);
+                if (!text) value = 0;
+                if (value > 3) value = 3;
+                if (value < 0) value = 0;
+                setNewDrug({ ...newDrug, acbScore: value });
+              }}
+              style={drugSearchStyles.modalInput}
+            />
+            <Text style={drugSearchStyles.hintText}>
+              ACB Score is optional. Defaults to 0 if left empty.
+            </Text>
+
+            {/* Buttons */}
+            <View style={drugSearchStyles.modalButtons}>
+              <TouchableOpacity onPress={() => setShowModal(false)}>
+                <Text style={drugSearchStyles.cancelButton}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSaveDrug}>
+                <Text style={drugSearchStyles.saveButton}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ImageBackground>
   );
 }

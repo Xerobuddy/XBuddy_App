@@ -63,6 +63,12 @@ export default function ReportSummary({ route, navigation }: any) {
     return "#F44336";
   };
 
+  const getSxiDTotalColor = (score: number) => {
+    if (score <= 8) return "#4CAF50";   // Green
+    if (score <= 12) return "#FFC107";  // Amber
+    return "#F44336";                   // Red
+  };
+
 
   const calculateAcbScore = (drugs: any[] = []) => {
     if (!drugs || drugs.length === 0) return 0;
@@ -190,6 +196,14 @@ export default function ReportSummary({ route, navigation }: any) {
           <View style={styles.infoDivider} />
           <Text style={styles.infoText}>Number of Drugs: {numDrugs}</Text>
         </View>
+
+        {/* SXI-D Total */}
+        {report.sxi_d_total !== undefined && (
+          <View style={[styles.card, { backgroundColor: getSxiDTotalColor(report.sxi_d_total) }]}>
+            <Text style={styles.cardTitle}>SXI-D Total</Text>
+            <Text style={styles.cardValue}>{Number(report.sxi_d_total).toFixed(1)}</Text>
+          </View>
+        )}
 
         {/* Xerostomia Score */}
         <View style={[styles.card, { backgroundColor: getXeroColor(report.xerostomiaScore) }]}>

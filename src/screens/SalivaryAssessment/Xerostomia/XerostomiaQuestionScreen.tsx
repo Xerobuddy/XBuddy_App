@@ -68,7 +68,22 @@ export default function XerostomiaQuestionScreen() {
     const userEmail = auth().currentUser?.email;
     if (!userEmail) return;
 
+    // 🎯 Map answers to sxi_d values
+    const sxiMap: Record<string, number> = {
+      Never: 1,
+      Occasionally: 3,
+      Often: 5,
+    };
+
+    const sxi_d = sxiMap[answer] ?? 0; // default 0 if somehow unmatched
+
     try {
+      const answerData = {
+        question: questionItem.question,
+        answer,
+        sxi_d, // ✅ added here
+      };
+
       // save to user reports
       await firestore()
         .collection("users")
@@ -77,7 +92,7 @@ export default function XerostomiaQuestionScreen() {
         .doc(reportId)
         .collection("xerostomia")
         .doc(`q${questionNumber}`)
-        .set({ question: questionItem.question, answer });
+        .set(answerData);
 
       // save to admin reports
       await firestore()
@@ -87,7 +102,7 @@ export default function XerostomiaQuestionScreen() {
         .doc(reportId)
         .collection("xerostomia")
         .doc(`q${questionNumber}`)
-        .set({ question: questionItem.question, answer });
+        .set(answerData);
 
       if (questionNumber < questions.length) {
         navigation.push("XerostomiaQuestion", {

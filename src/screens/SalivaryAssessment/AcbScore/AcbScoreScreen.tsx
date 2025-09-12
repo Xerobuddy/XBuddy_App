@@ -16,7 +16,7 @@ import { ArrowLeftIcon, TrashIcon } from "react-native-heroicons/outline";
 
 interface Product {
     id: string;
-    productName: string;
+    drugName: string;
     acbScore: number;
 }
 
@@ -125,7 +125,7 @@ export default function AcbScoreScreen({ route, navigation }: any) {
                     renderItem={({ item }) => (
                         <View style={acbScoreStyles.drugItem}>
                             <View>
-                                <Text style={acbScoreStyles.drugName}>{item.productName}</Text>
+                                <Text style={acbScoreStyles.drugName}>{item.drugName}</Text>
                                 <Text style={acbScoreStyles.drugScore}>Acb Score: {item.acbScore}</Text>
                             </View>
                             <TouchableOpacity onPress={() => handleDeleteDrug(item.id)}>

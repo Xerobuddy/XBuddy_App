@@ -25,19 +25,46 @@ export default function XerostomiaInfoScreen() {
       const userEmail = auth().currentUser?.email;
       if (!userEmail) return;
 
+      // Fetch all question answers
+      const snapshot = await firestore()
+        .collection("users")
+        .doc(userEmail)
+        .collection("reports")
+        .doc(reportId)
+        .collection("xerostomia")
+        .get();
+
+      const sxiMap: Record<string, number> = {
+        Never: 1,
+        Occasionally: 3,
+        Often: 5,
+      };
+
+      let total = 0;
+      snapshot.forEach(doc => {
+        const ans = doc.data().answer;
+        total += sxiMap[ans] ?? 0;
+      });
+
+      // Save both xerostomiaScore and sxi_d_total
+      const updateData = {
+        xerostomiaScore: sliderValue,
+        sxi_d_total: total,
+      };
+
       await firestore()
         .collection("users")
         .doc(userEmail)
         .collection("reports")
         .doc(reportId)
-        .update({ xerostomiaScore: sliderValue });
+        .update(updateData);
 
       await firestore()
         .collection("admin")
         .doc("reports")
         .collection("reports")
         .doc(reportId)
-        .update({ xerostomiaScore: sliderValue });
+        .update(updateData);
 
       navigation.navigate("DrugSearchScreen", { reportId });
     } catch (e) {
